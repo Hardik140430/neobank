@@ -1,0 +1,102 @@
+package com.neobank.transactionservice.service;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import com.neobank.transactionservice.client.AccountServiceClient;
+import com.neobank.transactionservice.dto.ApiResponse;
+import com.neobank.transactionservice.dto.BalanceUpdateRequest;
+import com.neobank.transactionservice.dto.TransactionRequest;
+import com.neobank.transactionservice.events.TransactionEvent;
+import com.neobank.transactionservice.model.AuditLog;
+import com.neobank.transactionservice.model.Transaction;
+import com.neobank.transactionservice.model.TransactionType;
+import com.neobank.transactionservice.repository.AuditRepository;
+import com.neobank.transactionservice.repository.TransactionRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class TransactionService {
+
+	private final TransactionRepository transactionRepository;
+	private final AccountServiceClient accountServiceClient;
+	private final KafkaTemplate<String, TransactionEvent> kafkaTemplate;
+	
+	
+	@Autowired
+	private AuditService auditService;
+	
+	@Value("${kafka.topics.transaction}")
+	private String transactionTopic;
+
+	private static final String TRANSACTION_TOPIC = "transaction-events";
+
+	public Transaction createTransaction(TransactionRequest request) {
+		String txId = UUID.randomUUID().toString();
+		// 1️- Create Transaction entity from request
+		Transaction transaction = Transaction.builder().transactionId(txId)
+				.fromAccountNumber(request.getTransactionType() == TransactionType.WITHDRAWAL
+						|| request.getTransactionType() == TransactionType.TRANSFER ? request.getFromAccountNumber()
+								: null)
+				.toAccountNumber(request.getTransactionType() == TransactionType.DEPOSIT
+						|| request.getTransactionType() == TransactionType.TRANSFER ? request.getToAccountNumber()
+								: null)
+				.amount(request.getAmount()).transactionType(request.getTransactionType())
+				.transactionDate(LocalDateTime.now()).description(request.getDescription()).build();
+
+		// 2 - Map to BalanceUpdateRequest for account-service
+		BalanceUpdateRequest bRequest = BalanceUpdateRequest.builder().fromAccountNumber(request.getFromAccountNumber())
+				.toAccountNumber(request.getToAccountNumber()).transactionType(request.getTransactionType())
+				.amount(request.getAmount()).build();
+
+		// 3 - call account-service to update the balance
+		accountServiceClient.updateBalance(bRequest);
+		Transaction saved = transactionRepository.save(transaction);
+
+		// 4 - Audit log
+		if (saved.getTransactionType() == TransactionType.TRANSFER) {
+			// two logs : one for debit, one for credit
+			auditService.logEvent(txId, saved.getFromAccountNumber(), null, saved.getAmount(),
+					TransactionType.WITHDRAWAL, "Transfer debit from account " + saved.getFromAccountNumber());
+			auditService.logEvent(txId, null, saved.getToAccountNumber(), saved.getAmount(), TransactionType.DEPOSIT,
+					"Transfer credit to account " + saved.getToAccountNumber());
+		} else {
+			// single
+			auditService.logEvent(txId, saved.getFromAccountNumber(), saved.getToAccountNumber(), saved.getAmount(),
+					saved.getTransactionType(), saved.getDescription());
+		}
+		
+		
+		//Publish event to Kafka for audit (fire-and-forget)
+		TransactionEvent event = TransactionEvent.builder()
+				.eventId(UUID.randomUUID().toString())			// unique event id				
+				.transactionId(saved.getTransactionId())		// business id
+				.fromAccountNumber(saved.getFromAccountNumber())	// may be null
+				.toAccountNumber(saved.getToAccountNumber())		// may be null
+				.amount(saved.getAmount())	
+				.transactionType(saved.getTransactionType().name())
+				.description(saved.getDescription())
+				.occuredAt(Instant.now())
+				.build();
+				
+		kafkaTemplate.send(transactionTopic, saved.getTransactionId(), event); // key=txId for ordering per key
+		
+		return saved;
+	}
+
+	// Fetch all transactions for a given account
+	public List<Transaction> getByFromAccountNumberOrToAccountNumber(String accountNumber) {
+		return transactionRepository.findByFromAccountNumberOrToAccountNumber(accountNumber, accountNumber);
+	}
+}

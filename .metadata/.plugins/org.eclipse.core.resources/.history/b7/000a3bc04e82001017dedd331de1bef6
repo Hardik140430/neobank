@@ -1,0 +1,5 @@
+package com.neobank.reports.repository;
+
+public interface MothlySummaryRepository extends Jpa {
+
+}

@@ -1,0 +1,5 @@
+package com.neobank.notification.events;
+
+public class TransactionEvent {
+
+}

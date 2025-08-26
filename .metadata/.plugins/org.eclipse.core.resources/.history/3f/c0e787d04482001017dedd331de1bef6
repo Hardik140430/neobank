@@ -1,0 +1,10 @@
+package com.neobank.reports.entity;
+
+import lombok.Data;
+
+@Data
+@Entity
+@Table
+public class RawTransactionEvent {
+
+}

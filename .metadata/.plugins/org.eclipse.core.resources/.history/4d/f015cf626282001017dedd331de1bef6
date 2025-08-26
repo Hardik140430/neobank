@@ -1,0 +1,24 @@
+package com.neobank.reports.scheduling;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import com.neobank.reports.entity.MonthlySummary;
+import com.neobank.reports.repository.*;
+
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+public class SummaryAggregator {
+
+	private final RawTransactionEventRepository repository;
+	 private final MothlySummaryRepository summaryRepo;
+	 
+	// run daily at 01:00 AM to aggregate previous day's data (cron style)
+	 
+	 @Scheduled(cron = "0 0 1 * * *")
+	 public void aggregateDailyToMonthly() {
+		 
+	 }
+}

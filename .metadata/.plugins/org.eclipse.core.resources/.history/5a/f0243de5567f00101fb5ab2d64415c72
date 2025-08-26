@@ -1,0 +1,60 @@
+package com.neobank.audit.kafka;
+
+import java.time.Instant;
+import java.util.Map;
+
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
+
+import com.neobank.audit.events.TransactionEvent;
+import com.neobank.audit.model.AuditLog;
+import com.neobank.audit.repository.AuditLogRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class TransactionEventListener {
+
+	private final AuditLogRepository repository;
+
+	@KafkaListener(topics = "${kafka.topics.transaction}", groupId = "audit-service",containerFactory = "transactionKafkaListenerContainerFactory")
+	public void onTransactionEvent(TransactionEvent event) {
+		// We consume as Map to avoid sharing DTO libs; Kafka’s JsonDeserializer maps JSON->Map.
+        // If you prefer strong typing, create the same TransactionEvent class in audit-service and use it as parameter type.
+		
+		try {
+			String transactionId = (String) payload.get("transactionId");
+			String fromAccountNumber = (String) payload.get("fromAccountNumber");
+			String toAccountNumber = (String) payload.get("toAccountNumber");
+			String transactionType = (String) payload.get("transactionType");
+			String description = (String) payload.get("description");
+			Object amountObj = payload.get("amount");
+			String amountStr = amountObj != null ? amountObj.toString() : "0" ;
+			
+			String details = "TX "+ transactionType
+					+ " amount="+amountStr
+					+ " from="+(fromAccountNumber != null ? fromAccountNumber : "-")
+					+ " to="+(toAccountNumber != null ? toAccountNumber : "-")
+					+ " desc="+ (description != null ? description : "-");
+			
+			AuditLog logDoc = AuditLog.builder()
+					.entity("Transaction")		// who generated event
+					.entityId(transactionId)   //business id
+					.action("CREATE")	
+					.performedBy("system")
+					.timestamp(Instant.now())
+					.details(details)
+					.build();
+			
+			repository.save(logDoc);
+			log.info("Saved audit log for txId={}", transactionId);
+					
+		} catch (Exception e) {
+			log.error("Failed to process transaction event: {}", payload, e);
+		}
+	}
+
+}

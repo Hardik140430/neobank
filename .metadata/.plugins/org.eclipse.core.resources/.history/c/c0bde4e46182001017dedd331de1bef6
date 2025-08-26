@@ -1,0 +1,14 @@
+package com.neobank.reports.scheduling;
+
+import org.springframework.stereotype.Component;
+
+import com.neobank.reports.repository.RawTransactionEventRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+public class SummaryAggregator {
+
+	private final RawTransactionEventRepository repository;
+}

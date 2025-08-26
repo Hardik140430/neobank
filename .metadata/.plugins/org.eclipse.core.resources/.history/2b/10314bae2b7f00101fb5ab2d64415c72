@@ -1,0 +1,14 @@
+package com.neobank.audit.service;
+
+import org.springframework.stereotype.Service;
+
+import com.neobank.audit.repository.AuditLogRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class AuditService {
+
+	private final AuditLogRepository auditLogRepository;
+}

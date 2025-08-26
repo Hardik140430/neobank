@@ -1,0 +1,17 @@
+package com.neobank.transactionservice.config;
+
+import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.context.annotation.Configuration;
+
+import lombok.Value;
+
+@Configuration
+public class KafkaConfig {
+
+	  // The KafkaTemplate is auto-configured by Spring Boot when spring-kafka is on classpath.
+    // We just ensure the topic exists using NewTopic.
+	
+	public NewTopic transactionTopic(@Value("${kafka.topics.transaction}") String name) {
+		
+	}
+}

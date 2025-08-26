@@ -1,0 +1,14 @@
+package com.neobank.reports.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.neobank.reports.entity.MonthlySummary;
+
+public interface MothlySummaryRepository extends JpaRepository<MonthlySummary, Long> {
+	
+	List<MonthlySummary> findByAccountIdOrderByYearDescMonthDesc(String accountId);
+	
+	MonthlySummary findByAccountIdAndYearAndMonth(String accountId, Integer year, Integer month);
+}

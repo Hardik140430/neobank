@@ -1,0 +1,10 @@
+package com.neobank.transactionservice.config;
+
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class KafkaConfig {
+
+	  // The KafkaTemplate is auto-configured by Spring Boot when spring-kafka is on classpath.
+    // We just ensure the topic exists using NewTopic.
+}

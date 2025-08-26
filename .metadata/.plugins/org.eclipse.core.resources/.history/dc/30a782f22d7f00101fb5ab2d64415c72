@@ -1,0 +1,40 @@
+package com.neobank.audit.service;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.neobank.audit.model.AuditLog;
+import com.neobank.audit.repository.AuditLogRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class AuditService {
+
+	private final AuditLogRepository auditLogRepository;
+	
+	public AuditLog logEvent(String entity, String entityId, String action,BigDecimal amount, String performedBy, String details) {
+		AuditLog log = AuditLog.builder()
+				.entity(entityId)
+				.entityId(entityId)
+				.action(action)
+				.performedBy(performedBy)
+				.timestamp(Instant.now())
+				.details(details)
+				.build();
+		
+		return auditLogRepository.save(log);
+	}
+	
+	public List<AuditLog> getLogsByEntity(String entity){
+		return auditLogRepository.findByEntity(entity);
+	}
+	
+	public List<AuditLog> getLogsByEntityId(String entityId){
+		return auditLogRepository.findByEntityId(entityId);
+	}
+}

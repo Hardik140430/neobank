@@ -1,0 +1,20 @@
+package com.neobank.transactionservice.config;
+
+import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+
+@Configuration
+public class KafkaConfig {
+
+	  // The KafkaTemplate is auto-configured by Spring Boot when spring-kafka is on classpath.
+    // We just ensure the topic exists using NewTopic.
+	
+	@Bean
+	public NewTopic transactionTopic(@Value("${kafka.topics.transaction}") String name) {
+		// name, partitions, replicationFactor
+		return new NewTopic(name,1, (short)1 );
+	}
+}

@@ -1,0 +1,19 @@
+package com.neobank.reports.events;
+
+import org.springframework.stereotype.Component;
+
+import com.neobank.reports.dto.TransactionEvent;
+import com.neobank.reports.repository.RawTransactionEventRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+public class TransactionEventListener {
+
+	private final RawTransactionEventRepository repository;
+	
+	public void onTransactionEvent(TransactionEvent event) {
+		
+	}
+}

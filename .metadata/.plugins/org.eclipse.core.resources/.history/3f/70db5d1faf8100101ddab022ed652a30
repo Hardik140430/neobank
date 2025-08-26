@@ -1,0 +1,6 @@
+package com.neobank.transactionservice.dto;
+
+public class User {
+
+	
+}

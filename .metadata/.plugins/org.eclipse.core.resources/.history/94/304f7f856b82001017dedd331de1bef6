@@ -1,0 +1,54 @@
+package com.neobank.reports.controller;
+
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.neobank.reports.entity.MonthlySummary;
+import com.neobank.reports.entity.RawTransactionEvent;
+import com.neobank.reports.repository.MothlySummaryRepository;
+import com.neobank.reports.repository.RawTransactionEventRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/reports")
+@RequiredArgsConstructor
+public class ReportController {
+	
+	private final MothlySummaryRepository moRepository;
+	private final RawTransactionEventRepository eventRepository;
+	
+	
+	// GET /reports/monthly/{userId}?year=2025&month=8
+	// NOTE: If you want monthly by userId you may need to map accountId -> userId using account-service.
+	@GetMapping("/monthly/{accountId}")
+	public MonthlySummary getMonthlySummary(
+			@PathVariable String accountId,
+			@RequestParam  int year,
+			@RequestParam  int month) {
+		// return the precomputed monthly summary
+		return moRepository.findByAccountIdAndYearAndMonth(accountId, year, month);		
+	}
+	
+	
+	
+	// GET /reports/statement/{accountId}?from=2025-08-01&to=2025-08-25
+	@GetMapping("/statement/{accountId}")
+	public List<RawTransactionEvent> getStatement(
+			@PathVariable String accountId,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to){
+		OffsetDateTime fromDt = from.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime();
+		OffsetDateTime toDt = to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toOffsetDateTime().minusNanos(1);
+	}
+	
+}

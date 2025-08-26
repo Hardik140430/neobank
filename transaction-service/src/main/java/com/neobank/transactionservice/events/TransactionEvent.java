@@ -1,0 +1,28 @@
+package com.neobank.transactionservice.events;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class TransactionEvent {
+	private String userName;
+    private String userEmail;
+    private String userMobile;  // ✅ added
+	private String eventId; 	// unique id for this event
+	private String transactionId; 	//business id
+	private String fromAccountNumber;   // null for deposit
+	private String toAccountNumber;		// null for withdrawal
+	private BigDecimal amount;			//amount
+	private String transactionType; 	//DEPOSIT/WITHDRAWAL/TRANSFER
+	private String description;			//free text
+	private Instant occuredAt;			//event time
+	
+}

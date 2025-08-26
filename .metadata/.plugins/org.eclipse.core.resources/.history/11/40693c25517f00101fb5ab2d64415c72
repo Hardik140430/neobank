@@ -1,0 +1,5 @@
+package com.neobank.audit.kafka;
+
+public class TransactionEventListener {
+
+}

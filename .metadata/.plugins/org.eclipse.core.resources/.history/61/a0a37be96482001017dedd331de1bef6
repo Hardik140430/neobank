@@ -1,0 +1,65 @@
+package com.neobank.reports.scheduling;
+
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import com.neobank.reports.entity.MonthlySummary;
+import com.neobank.reports.entity.RawTransactionEvent;
+import com.neobank.reports.repository.*;
+
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+public class SummaryAggregator {
+
+	private final RawTransactionEventRepository rawrepository;
+	 private final MothlySummaryRepository summaryRepo;
+	 
+	// run daily at 01:00 AM to aggregate previous day's data (cron style)
+	 
+	 @Scheduled(cron = "0 0 1 * * *")
+	 public void aggregateDailyToMonthly() {
+		// find all raw events for the last 30 days (safe window)
+		 OffsetDateTime to = OffsetDateTime.now(ZoneOffset.UTC);
+		 OffsetDateTime from  = to.minusDays(30);
+		 
+		 List<RawTransactionEvent> events = rawrepository.findByOccuredAtBetween(from, to);
+		 
+	     // group by accountId and YearMonth
+		 Map<String, Map<YearMonth, List<RawTransactionEvent>>> grouped = events.stream()
+				 .collect(Collectors.groupingBy(
+						 RawTransactionEvent::getAccountId,
+						 Collectors.groupingBy(e -> YearMonth.from(e.getOccuredAt().atZoneSameInstant(ZoneOffset.UTC)))
+						 ));
+		 
+		 for(Map.Entry<String, Map<YearMonth, List<RawTransactionEvent>>> accEntry : grouped.entrySet() ) {
+			 String accountId = accEntry.getKey();
+			 for(Map.Entry<YearMonth, List<RawTransactionEvent>> monthEntry : accEntry.getValue().entrySet()) {
+				 YearMonth ym = monthEntry.getKey();
+				 List<RawTransactionEvent> list = monthEntry.getValue();
+				 BigDecimal totalCredit = BigDecimal.ZERO;
+				 BigDecimal totalDebit = BigDecimal.ZERO;
+				 long txCount = list.size();
+				 
+				 for(RawTransactionEvent e : list) {
+					 if("DEPOSIT".equalsIgnoreCase(e.getTransactionType())) {
+						 totalCredit = totalCredit.add(Optional.ofNullable(e.getAmount()).orElse(BigDecimal.ZERO));						
+					 }else {
+						 totalDebit = totalCredit.add(Optional.ofNullable(e.getAmount()).orElse(BigDecimal.ZERO));
+					 }
+				 }
+			 }
+		 }
+		 
+	 }
+}

@@ -1,0 +1,24 @@
+package com.neobank.audit.kafka;
+
+import java.util.Map;
+
+import org.springframework.stereotype.Component;
+
+import com.neobank.audit.repository.AuditLogRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class TransactionEventListener {
+	
+	private final AuditLogRepository repository;
+	
+	
+	public void onTransactionEvent(Map<String, Object> payload) {
+		
+	}
+
+}

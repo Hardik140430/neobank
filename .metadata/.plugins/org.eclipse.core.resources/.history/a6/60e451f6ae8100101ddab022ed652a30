@@ -1,0 +1,18 @@
+package com.neobank.transactionservice.client;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.neobank.transactionservice.dto.BalanceUpdateRequest;
+
+//✅ This tells Feign to look up ACCOUNT-SERVICE from Eureka and call its endpoints
+@FeignClient(name = "account-service") 
+public interface AccountServiceClient {
+	
+	// ✅ This will call the endpoint in account-service that updates the account balance
+    @PostMapping("/account/updateBalance")
+	void updateBalance(@RequestBody BalanceUpdateRequest request);
+
+}

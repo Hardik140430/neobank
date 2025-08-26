@@ -1,0 +1,5 @@
+package com.neobank.reports.entity;
+
+public class MonthlySummary {
+
+}

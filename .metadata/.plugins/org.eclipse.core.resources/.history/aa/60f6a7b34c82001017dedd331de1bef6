@@ -1,0 +1,19 @@
+package com.neobank.reports.entity;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "monthly_summaries", uniqueConstraints = @UniqueConstraint(columnNames = {"account_id", "year" ,"month"}))
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class MonthlySummary {
+
+}

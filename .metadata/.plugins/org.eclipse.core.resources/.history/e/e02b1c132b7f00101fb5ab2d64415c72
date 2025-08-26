@@ -1,0 +1,5 @@
+package com.neobank.audit.repository;
+
+public interface AuditLogRepository {
+
+}

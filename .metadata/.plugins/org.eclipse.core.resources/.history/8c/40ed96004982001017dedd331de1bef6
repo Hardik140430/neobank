@@ -1,0 +1,9 @@
+package com.neobank.reports.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.neobank.reports.entity.RawTransactionEvent;
+
+public interface RawTransactionEventRepository extends JpaRepository<RawTransactionEvent, Long> {
+
+}

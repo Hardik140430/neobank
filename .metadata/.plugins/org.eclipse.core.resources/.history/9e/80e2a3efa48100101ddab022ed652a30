@@ -1,0 +1,51 @@
+package com.neobank.notification.service;
+
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.mail.MailException;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+
+import com.neobank.notification.events.TransactionEvent;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class NotificationService {
+
+	private final JavaMailSender mailSender;
+	
+	@KafkaListener(topics = "transaction-events", groupId = "notification-service")
+	public void handleNotification(TransactionEvent event){
+		try {
+			System.out.println("in handleNotification");
+			//create email
+			SimpleMailMessage message = new SimpleMailMessage();
+			message.setFrom("hardikharsora1404@gmail.com");
+			message.setTo("hardikharsora146@gmail.com");   // Later: fetch from DB
+			message.setSubject("Transaction Notification - "+ event.getStatus());
+			message.setText("Transaction ID: "+ event.getTransactionId()
+				+ "\nFrom: "+ event.getFromAccountNumber()
+				+ "\nTo: "+ event.getToAccountNumber()
+				+ "\nType: "+ event.getTransactionType()
+				+ "\nAmount: "+ event.getAmount()
+				+ "\nStatus: "+event.getStatus()
+				+ "\nTransactionTime: "+ event.getOccuredAt()
+					);
+			System.out.println("message " + message);
+			mailSender.send(message);
+			System.out.println("email sent successfully");
+			
+			log.info("Notification sent successfully for transaction {} ", event.getTransactionId() );
+		} catch (Exception e) {
+			System.out.println("in exception");
+			e.printStackTrace();
+		}
+		
+		
+	}
+	
+}

@@ -1,0 +1,44 @@
+package com.neobank.notification.service;
+
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+
+import com.neobank.notification.events.TransactionEvent;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class NotificationService {
+
+	private final JavaMailSender mailSender;
+	
+	@KafkaListener(topics = "${kafka.topics.transaction}", groupId = "notification-service")
+	public void handleNotification(TransactionEvent event) {
+		log.info("Sending notification for transaction: {} "+ event);
+		
+		//create email
+		SimpleMailMessage message = new SimpleMailMessage();
+		message.setFrom("hardikharsora1404@gmail.com");
+		message.setTo("hardikharsora146@gmail.com");   // Later: fetch from DB
+		message.setSubject("Transaction Notification - "+ event.getStatus());
+		message.setText("Transaction ID: "+ event.getTransactionId()
+			+ "\nFrom: "+ event.getFromAccountNumber()
+			+ "\nTo: "+ event.getToAccountNumber()
+			+ "\nType: "+ event.getTransactionType()
+			+ "\nAmount: "+ event.getAmount()
+			+ "\nStatus: "+event.getStatus()
+			+ "\nTransactionTime: "+ event.getOccuredAt()
+				);
+		
+		mailSender.send(message);
+		
+		log.info("Notification sent successfully for transaction {} ", event.getTransactionId() );
+		
+	}
+	
+}
