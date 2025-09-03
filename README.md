@@ -9,7 +9,7 @@ This project is designed to demonstrate real-world microservices architecture wi
 
 Backend: Java 17, Spring Boot, Spring Security, Spring Cloud (Eureka, Gateway, Feign)
 
-Database: PostgreSQL (for persistence), H2 (for testing)
+Database: PostgreSQL, MongoDB
 
 Messaging: Apache Kafka (event-driven architecture)
 
@@ -83,7 +83,7 @@ Steps
 
 Clone this repo:
 
-git clone https://github.com/<your-username>/neobank.git
+git clone https://github.com/Hardik140430/neobank.git
 cd neobank
 
 
